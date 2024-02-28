@@ -1,35 +1,51 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { HotToastProvider, useToasts } from 'react-hot-toast';
+import ErrorMessage from './components/ErrorMessage/ErrorMessage';
+import ImageLoader from './components/ImageLoader/ImageLoader';
+import ImageGallery from './components/ImageGallery/ImageGallery';
+import LoadMoreBtn from './components/LoadMoreBtn/LoadMoreBtn';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+
+  const { addToast } = useToasts();
+  const accessKey = '6V-3GZ59GwW9BVTbyMeERWIU1-FRqCKmUEvLShWiSVg'; // Замініть на свій ключ доступу
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`https://api.unsplash.com/search/photos?page=${page}&query=nature&client_id=${accessKey}`);
+        setImages((prevImages) => [...prevImages, ...response.data.results]);
+      } catch (error) {
+        setError(error);
+        addToast('Error loading images', { appearance: 'error' });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchImages();
+  }, [page, addToast, accessKey]);
+
+  const handleLoadMore = () => {
+    setPage((prevPage) => prevPage + 1);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <HotToastProvider>
+      <div className="App">
+        {error && <ErrorMessage />}
+        {loading && <ImageLoader />}
+        <ImageGallery images={images} />
+        <LoadMoreBtn onClick={handleLoadMore} hasMoreImages={!loading && !error && images.length > 0} />
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </HotToastProvider>
+  );
 }
 
-export default App
+export default App;
