@@ -13,7 +13,7 @@ function App() {
   const [page, setPage] = useState(1);
 
   const { addToast } = useToasts();
-  const accessKey = '6V-3GZ59GwW9BVTbyMeERWIU1-FRqCKmUEvLShWiSVg'; // Замініть на свій ключ доступу
+  const accessKey = process.env.REACT_APP_UNSPLASH_ACCESS_KEY;
 
   useEffect(() => {
     const fetchImages = async () => {
